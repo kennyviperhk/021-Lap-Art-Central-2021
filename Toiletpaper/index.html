@@ -1,0 +1,59 @@
+<html>
+
+<head>
+  <script>
+    var connection = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
+    connection.onopen = function() {
+      connection.send('Connect ' + new Date());
+    };
+    connection.onerror = function(error) {
+      console.log('WebSocket Error ', error);
+    };
+    connection.onmessage = function(e) {
+      console.log('Server: ', e.data);
+    };
+    connection.onclose = function(e) {
+      console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+      setTimeout(function() {
+        connection = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
+      }, 1000);
+    };
+
+
+    function sendStepper(x,y,z) {
+      var command = '#' + 'x' + x + 'y' + y + 'z' + z;
+      console.log('sendStepper: ' + command);
+      connection.send(command);
+    }
+
+  </script>
+</head>
+
+<body>
+  Toilet Paper 1:
+  <br />
+  <br />
+  <button onclick=\"sendStepper(-1,0,0);\" /> <<< </button>
+  &nbsp
+  <button onclick=\"sendStepper(1,0,0);\" /> >>> </button>
+  <br />
+  <br />
+  Toilet Paper 2:
+  <br />
+  <br />
+  <button onclick=\"sendStepper(0,-1,0);\" /> <<< </button>
+  &nbsp
+  <button onclick=\"sendStepper(0,1,0);\" /> >>> </button>
+  <br />
+  <br />
+  Toilet Paper 3:
+  <br />
+  <br />
+  <button onclick=\"sendStepper(0,0,-1);\" /> <<< </button>
+  &nbsp
+  <button onclick=\"sendStepper(0,0,1);\" /> >>> </button>
+  <br />
+  <br />
+</body>
+
+</html>
