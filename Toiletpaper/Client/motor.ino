@@ -10,7 +10,7 @@ void motorSetup()
 void motorLoop()
 {
   if (stepper.distanceToGo() == 0) {
-    stepper.moveTo(currX);
+    stepper.moveTo(currY);
     stepper.setMaxSpeed(s);
     stepper.setAcceleration(s);
   }

@@ -18,7 +18,17 @@
         connection = new WebSocket('ws://' + location.hostname + '/ws', ['arduino']);
       }, 1000);
     };
+    var s = 1000;
 
+    function updateSpeed(){
+        s = parseInt(document.getElementById('speed').value);
+    }
+
+    function sendSpeed() {
+      var command = '#' + 's' + s;
+      console.log('sendSpeed: ' + command);
+      connection.send(command);
+    }
 
     function sendStepper(x,y,z) {
       var command = '#' + 'x' + x + 'y' + y + 'z' + z;
@@ -54,6 +64,7 @@
   <button onclick=\"sendStepper(0,0,1);\" /> >>> </button>
   <br />
   <br />
+  Speed: <input id=\"speed\" type=\"range\" min=\"100\" max=\"3000\" step=\"100\" oninput=\"updateSpeed();\" onmouseup=\"sendSpeed();\"/>
 </body>
 
 </html>
