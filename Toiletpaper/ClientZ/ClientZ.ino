@@ -21,8 +21,11 @@ WebSocketsClient webSocket;
 #define USE_SERIAL Serial
 
 
-int x = 0, y = 0, z = 0, s = 1000;
-int currX = 0, currY = 0, currZ = 0;
+AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
+int x = 0, y = 0, z = 0, s = 100, m = 1;
+long currX = 0, currY = 0, currZ = 0;
+int moveVal = 100;
+long limit = 10000;
 long currentMillis;
 long prevMillis;
 
@@ -100,18 +103,48 @@ void decode_text(String s) {
   String c = s.substring(colorCodeBegin + 1, s.length());
 
   // we get stepper data
-  if (c.substring(0, 1) == "x") {
-    char* buf = (char *)c.c_str();
-    int n = sscanf(buf, "x%dy%dz%d", &x, &y, &z);
-    if (y > 0) {
-      currY += 50;
-    }
-    if (y < 0) {
-      currY -= 50;
-    }
-  }
   if (c.substring(0, 1) == "s") {
     char* buf = (char *)c.c_str();
     int n = sscanf(buf, "s%d", &s);
+  }
+  if (c.substring(0, 1) == "m") {
+    char* buf = (char *)c.c_str();
+    int n = sscanf(buf, "m%d", &m);
+  }
+  if (m == 0) {
+    if (c.substring(0, 1) == "x") {
+      char* buf = (char *)c.c_str();
+      int n = sscanf(buf, "x%dy%dz%d", &x, &y, &z);
+      if (z > 0) {
+        currZ += moveVal;
+      }
+      if (z < 0) {
+        currZ -= moveVal;
+      }
+    }
+    if (currX > 10000) {
+      currX = 10000;
+    }
+    if (currX < -10000) {
+      currX = -10000;
+    }
+    if (currY > 10000) {
+      currY = 10000;
+    }
+    if (currY < -10000) {
+      currY = -10000;
+    }
+    if (currZ > 10000) {
+      currZ = 10000;
+    }
+    if (currZ < -10000) {
+      currZ = -10000;
+    }
+  }
+  if (m == 1) {
+    if (c.substring(0, 1) == "a") {
+      char* buf = (char *)c.c_str();
+      int n = sscanf(buf, "a%db%dc%d", &currX, &currY, &currZ);
+    }
   }
 }

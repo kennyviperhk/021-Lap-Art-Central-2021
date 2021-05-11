@@ -12,9 +12,12 @@ AsyncEventSource events("/events"); // event source (Server-Sent events)
 //flag to use from web update to reboot the ESP
 bool shouldReboot = false;
 
-
-int x = 0, y = 0, z = 0, s = 1000;
-int currX = 0, currY = 0, currZ = 0;
+AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
+int x = 0, y = 0, z = 0, s = 100, m = 1;
+long currX = 0, currY = 0, currZ = 0;
+long interval = 5000;
+int moveVal = 100;
+long limit = 10000;
 long currentMillis;
 long prevMillis;
 
@@ -133,7 +136,7 @@ void setup() {
   server.addHandler(&events);
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
-    request->send(200, "text/html", "<html><head><script>;var connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino']);connection.onopen=function(){connection.send('Connect '+new Date())};connection.onerror=function(n){console.log('WebSocket Error ',n)};connection.onmessage=function(n){console.log('Server: ',n.data)};connection.onclose=function(n){console.log('Socket is closed. Reconnect will be attempted in 1 second.',n.reason);setTimeout(function(){connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino'])},1000)};var s=1000;function updateSpeed(){s=parseInt(document.getElementById('speed').value)};function sendSpeed(){var n='#s'+s;console.log('sendSpeed: '+n);connection.send(n)};function sendStepper(n,o,c){var e='#x'+n+'y'+o+'z'+c;console.log('sendStepper: '+e);connection.send(e)};</script></head><body> Toilet Paper 1: <br /><br /><button onclick=\"sendStepper(-1,0,0);\" /><<<</button>   <button onclick=\"sendStepper(1,0,0);\" />>>></button><br /><br /> Toilet Paper 2: <br /><br /><button onclick=\"sendStepper(0,-1,0);\" /><<<</button>   <button onclick=\"sendStepper(0,1,0);\" />>>></button><br /><br /> Toilet Paper 3: <br /><br /><button onclick=\"sendStepper(0,0,-1);\" /><<<</button>   <button onclick=\"sendStepper(0,0,1);\" />>>></button><br /><br /> Speed: <input id=\"speed\" type=\"range\" min=\"100\" max=\"3000\" step=\"100\" oninput=\"updateSpeed();\" onmouseup=\"sendSpeed();\"/></body></html>");
+    request->send(200, "text/html", "<html><head><script>;var connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino']);connection.onopen=function(){connection.send('Connect '+new Date())};connection.onerror=function(n){console.log('WebSocket Error ',n)};connection.onmessage=function(n){console.log('Server: ',n.data)};connection.onclose=function(n){console.log('Socket is closed. Reconnect will be attempted in 1 second.',n.reason);setTimeout(function(){connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino'])},1000)};var s=100;function updateSpeed(){s=parseInt(document.getElementById('speed').value)};function sendSpeed(){var n='#s'+s;console.log('sendSpeed: '+n);connection.send(n)};function sendStepper(n,o,c){var e='#x'+n+'y'+o+'z'+c;console.log('sendStepper: '+e);connection.send(e)};function sendMode(n){var e='#m'+n;console.log('sendMode: '+e);connection.send(e)};</script></head><body> Toilet Paper 1: <br /><br /><button onclick=\"sendStepper(-1,0,0);\" /><<<</button>   <button onclick=\"sendStepper(1,0,0);\" />>>></button><br /><br /> Toilet Paper 2: <br /><br /><button onclick=\"sendStepper(0,-1,0);\" /><<<</button>   <button onclick=\"sendStepper(0,1,0);\" />>>></button><br /><br /> Toilet Paper 3: <br /><br /><button onclick=\"sendStepper(0,0,-1);\" /><<<</button>   <button onclick=\"sendStepper(0,0,1);\" />>>></button><br /><br /> Speed: <input id=\"speed\" type=\"range\" min=\"100\" max=\"3000\" step=\"100\" oninput=\"updateSpeed();\" onmouseup=\"sendSpeed();\" ontouchend=\"sendSpeed();\"/><br /><br /><button onclick=\"sendMode(0);\" /> Manual Mode </button>   <button onclick=\"sendMode(1);\" /> Auto Mode </button></body></html>");
   });
 
 
@@ -215,18 +218,48 @@ void decode_text(String s) {
   String c = s.substring(colorCodeBegin + 1, s.length());
 
   // we get stepper data
-  if (c.substring(0, 1) == "x") {
-    char* buf = (char *)c.c_str();
-    int n = sscanf(buf, "x%dy%dz%d", &x, &y, &z);
-    if (x > 0) {
-      currX += 50;
-    }
-    if (x < 0) {
-      currX -= 50;
-    }
-  }
   if (c.substring(0, 1) == "s") {
     char* buf = (char *)c.c_str();
     int n = sscanf(buf, "s%d", &s);
+  }
+  if (c.substring(0, 1) == "m") {
+    char* buf = (char *)c.c_str();
+    int n = sscanf(buf, "m%d", &m);
+  }
+  if (m == 0) {
+    if (c.substring(0, 1) == "x") {
+      char* buf = (char *)c.c_str();
+      int n = sscanf(buf, "x%dy%dz%d", &x, &y, &z);
+      if (x > 0) {
+        currX += moveVal;
+      }
+      if (x < 0) {
+        currX -= moveVal;
+      }
+      if (currX > 10000) {
+        currX = 10000;
+      }
+      if (currX < -10000) {
+        currX = -10000;
+      }
+      if (currY > 10000) {
+        currY = 10000;
+      }
+      if (currY < -10000) {
+        currY = -10000;
+      }
+      if (currZ > 10000) {
+        currZ = 10000;
+      }
+      if (currZ < -10000) {
+        currZ = -10000;
+      }
+    }
+  }
+  if (m == 1) {
+    if (c.substring(0, 1) == "a") {
+      char* buf = (char *)c.c_str();
+      int n = sscanf(buf, "a%db%dc%d", &currX, &currY, &currZ);
+    }
   }
 }

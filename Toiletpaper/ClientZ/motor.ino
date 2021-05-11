@@ -1,4 +1,3 @@
-AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
 
 void motorSetup()
 {
@@ -10,7 +9,7 @@ void motorSetup()
 void motorLoop()
 {
   if (stepper.distanceToGo() == 0) {
-    stepper.moveTo(currY);
+    stepper.moveTo(currZ);
     stepper.setMaxSpeed(s);
     stepper.setAcceleration(s);
   }
