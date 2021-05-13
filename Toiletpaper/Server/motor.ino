@@ -10,37 +10,49 @@ void motorLoop()
 {
   if (m == 1) {
     if (currentMillis - prevMillis > interval) {
-      interval = random(5000, 15000);
+      interval = random(5000, 10000);
       prevMillis = currentMillis;
-      currX = random(currX -1000, currX + 1000);
-      if (currX > 10000) {
-        currX = 10000;
-      }
-      if (currX < -10000) {
-        currX = -10000;
-      }
-      currY = random(currX - 1000 , currX + 1000);
-      if (currY > 10000) {
-        currY = 10000;
-      }
-      if (currY < -10000) {
-        currY = -10000;
-      }
-      currZ = random(currY - 1000 , currY + 1000);
-      if (currZ > 10000) {
-        currZ = 10000;
-      }
-      if (currZ < -10000) {
-        currZ = -10000;
-      }
-      String command = "#a" + String(currX) + "b" + String(currY) + "c" + String(currZ);
-      decode_text(command);
+      int seed = random(1);
+      pickSituation(seed);
     }
   }
   if (stepper.distanceToGo() == 0) {
     stepper.moveTo(currX * -1);
     stepper.setMaxSpeed(s);
-    stepper.setAcceleration(s);
+    stepper.setAcceleration(200);
   }
   stepper.run();
+}
+
+void pickSituation(int s) {
+  if (s == 0) {
+    currX = random(0 , limit);
+    currY = currX;
+    currZ = currX;
+  }
+  if (s == 1) {
+    currX = random(0 , limit);
+    currY = random(currX, limit);
+    currZ = random(currY, limit);
+  }
+  if (currX > limit) {
+    currX = limit;
+  }
+  if (currX < 0) {
+    currX = 0;
+  }
+  if (currY > limit) {
+    currY = limit;
+  }
+  if (currY < 0) {
+    currY = 0;
+  }
+  if (currZ > limit) {
+    currZ = limit;
+  }
+  if (currZ < 0) {
+    currZ = 0;
+  }
+  String command = "#a" + String(currX) + "b" + String(currY) + "c" + String(currZ);
+  decode_text(command);
 }

@@ -23,10 +23,8 @@ WebSocketsClient webSocket;
 
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
-int x = 0, y = 0, z = 0, s = 100, m = 1;
+int x = 0, y = 0, z = 0, s = 50, m = 1;
 long currX = 0, currY = 0, currZ = 0;
-int moveVal = 100;
-long limit = 10000;
 long currentMillis;
 long prevMillis;
 
@@ -122,23 +120,23 @@ void decode_text(String s) {
       if (y < 0) {
         currY -= moveVal;
       }
-      if (currX > 10000) {
-        currX = 10000;
+      if (currX > limit) {
+        currX = limit;
       }
-      if (currX < -10000) {
-        currX = -10000;
+      if (currX < 0) {
+        currX = 0;
       }
-      if (currY > 10000) {
-        currY = 10000;
+      if (currY > limit) {
+        currY = limit;
       }
-      if (currY < -10000) {
-        currY = -10000;
+      if (currY < 0) {
+        currY = 0;
       }
-      if (currZ > 10000) {
-        currZ = 10000;
+      if (currZ > limit) {
+        currZ = limit;
       }
-      if (currZ < -10000) {
-        currZ = -10000;
+      if (currZ < 0) {
+        currZ = 0;
       }
     }
   }

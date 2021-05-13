@@ -18,4 +18,9 @@
 #define STEPPER1_DIR_PIN D2
 #define STEPPER1_STEP_PIN D3
 
+
+#define moveVal 100
+#define limit 300
+#define paperBuffer 100
+
 #endif // CONFIG_H

@@ -13,11 +13,9 @@ AsyncEventSource events("/events"); // event source (Server-Sent events)
 bool shouldReboot = false;
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
-int x = 0, y = 0, z = 0, s = 100, m = 1;
+int x = 0, y = 0, z = 0, s = 50, m = 1;
 long currX = 0, currY = 0, currZ = 0;
 long interval = 5000;
-int moveVal = 100;
-long limit = 10000;
 long currentMillis;
 long prevMillis;
 
@@ -136,7 +134,7 @@ void setup() {
   server.addHandler(&events);
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
-    request->send(200, "text/html", "<html><head><script>;var connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino']);connection.onopen=function(){connection.send('Connect '+new Date())};connection.onerror=function(n){console.log('WebSocket Error ',n)};connection.onmessage=function(n){console.log('Server: ',n.data)};connection.onclose=function(n){console.log('Socket is closed. Reconnect will be attempted in 1 second.',n.reason);setTimeout(function(){connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino'])},1000)};var s=100;function updateSpeed(){s=parseInt(document.getElementById('speed').value)};function sendSpeed(){var n='#s'+s;console.log('sendSpeed: '+n);connection.send(n)};function sendStepper(n,o,c){var e='#x'+n+'y'+o+'z'+c;console.log('sendStepper: '+e);connection.send(e)};function sendMode(n){var e='#m'+n;console.log('sendMode: '+e);connection.send(e)};</script></head><body> Toilet Paper 1: <br /><br /><button onclick=\"sendStepper(-1,0,0);\" /><<<</button>   <button onclick=\"sendStepper(1,0,0);\" />>>></button><br /><br /> Toilet Paper 2: <br /><br /><button onclick=\"sendStepper(0,-1,0);\" /><<<</button>   <button onclick=\"sendStepper(0,1,0);\" />>>></button><br /><br /> Toilet Paper 3: <br /><br /><button onclick=\"sendStepper(0,0,-1);\" /><<<</button>   <button onclick=\"sendStepper(0,0,1);\" />>>></button><br /><br /> Speed: <input id=\"speed\" type=\"range\" min=\"100\" max=\"3000\" step=\"100\" oninput=\"updateSpeed();\" onmouseup=\"sendSpeed();\" ontouchend=\"sendSpeed();\"/><br /><br /><button onclick=\"sendMode(0);\" /> Manual Mode </button>   <button onclick=\"sendMode(1);\" /> Auto Mode </button></body></html>");
+    request->send(200, "text/html", "<html><head><script>;var connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino']);connection.onopen=function(){connection.send('Connect '+new Date())};connection.onerror=function(n){console.log('WebSocket Error ',n)};connection.onmessage=function(n){console.log('Server: ',n.data)};connection.onclose=function(n){console.log('Socket is closed. Reconnect will be attempted in 1 second.',n.reason);setTimeout(function(){connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino'])},1000)};function sendStepper(n,o,c){var e='#x'+n+'y'+o+'z'+c;console.log('sendStepper: '+e);connection.send(e)};function sendMode(n){var e='#m'+n;console.log('sendMode: '+e);connection.send(e)};</script></head><body> Toilet Paper 1: <br /><br /><button onclick=\"sendStepper(-1,0,0);\" /><<<</button>   <button onclick=\"sendStepper(1,0,0);\" />>>></button><br /><br /> Toilet Paper 2: <br /><br /><button onclick=\"sendStepper(0,-1,0);\" /><<<</button>   <button onclick=\"sendStepper(0,1,0);\" />>>></button><br /><br /> Toilet Paper 3: <br /><br /><button onclick=\"sendStepper(0,0,-1);\" /><<<</button>   <button onclick=\"sendStepper(0,0,1);\" />>>></button><br /><br /><br /><br /><button onclick=\"sendMode(0);\" /> Manual Mode </button>   <button onclick=\"sendMode(1);\" /> Auto Mode </button></body></html>");
   });
 
 
@@ -214,6 +212,7 @@ void loop() {
 
 void decode_text(String s) {
   ws.textAll(s);
+  Serial.println(s);
   int colorCodeBegin = s.indexOf('#');
   String c = s.substring(colorCodeBegin + 1, s.length());
 
@@ -236,23 +235,35 @@ void decode_text(String s) {
       if (x < 0) {
         currX -= moveVal;
       }
-      if (currX > 10000) {
-        currX = 10000;
+      if (y > 0) {
+        currY += moveVal;
       }
-      if (currX < -10000) {
-        currX = -10000;
+      if (y < 0) {
+        currY -= moveVal;
       }
-      if (currY > 10000) {
-        currY = 10000;
+      if (z > 0) {
+        currZ += moveVal;
       }
-      if (currY < -10000) {
-        currY = -10000;
+      if (z < 0) {
+        currZ -= moveVal;
       }
-      if (currZ > 10000) {
-        currZ = 10000;
+      if (currX > limit) {
+        currX = limit;
       }
-      if (currZ < -10000) {
-        currZ = -10000;
+      if (currX < 0) {
+        currX = 0;
+      }
+      if (currY > limit) {
+        currY = limit;
+      }
+      if (currY < 0) {
+        currY = 0;
+      }
+      if (currZ > limit) {
+        currZ = limit;
+      }
+      if (currZ < 0) {
+        currZ = 0;
       }
     }
   }

@@ -11,7 +11,7 @@ void motorLoop()
   if (stepper.distanceToGo() == 0) {
     stepper.moveTo(currY);
     stepper.setMaxSpeed(s);
-    stepper.setAcceleration(s);
+    stepper.setAcceleration(200);
   }
   stepper.run();
 }
