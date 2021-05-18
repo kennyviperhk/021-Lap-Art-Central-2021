@@ -13,9 +13,10 @@ AsyncEventSource events("/events"); // event source (Server-Sent events)
 bool shouldReboot = false;
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
-int x = 0, y = 0, z = 0, s = 50, m = 1;
+int x = 0, y = 0, z = 0, s = 30, m = 1;
+bool isActive = false;
 long currX = 0, currY = 0, currZ = 0;
-long interval = 5000;
+long interval = 1500;
 long currentMillis;
 long prevMillis;
 
@@ -38,6 +39,7 @@ void onEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventTyp
     //    Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
     //client->printf("Hello Client %u :)", client->id());
     client->ping();
+    isActive = true;
   } else if (type == WS_EVT_DISCONNECT) {
     //    Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
   } else if (type == WS_EVT_ERROR) {
@@ -207,7 +209,9 @@ void loop() {
   static char temp[128];
   sprintf(temp, "Seconds since boot: %u", millis() / 1000);
   currentMillis = millis();
-  motorLoop();
+  if (isActive) {
+    motorLoop();
+  }
 }
 
 void decode_text(String s) {

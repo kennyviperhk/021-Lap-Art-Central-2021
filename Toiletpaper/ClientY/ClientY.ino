@@ -23,7 +23,7 @@ WebSocketsClient webSocket;
 
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
-int x = 0, y = 0, z = 0, s = 50, m = 1;
+int x = 0, y = 0, z = 0, s = 30, m = 1;
 long currX = 0, currY = 0, currZ = 0;
 long currentMillis;
 long prevMillis;

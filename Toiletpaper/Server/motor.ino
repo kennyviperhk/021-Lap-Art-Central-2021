@@ -10,7 +10,6 @@ void motorLoop()
 {
   if (m == 1) {
     if (currentMillis - prevMillis > interval) {
-      interval = random(5000, 10000);
       prevMillis = currentMillis;
       int seed = random(1);
       pickSituation(seed);
@@ -19,7 +18,7 @@ void motorLoop()
   if (stepper.distanceToGo() == 0) {
     stepper.moveTo(currX * -1);
     stepper.setMaxSpeed(s);
-    stepper.setAcceleration(200);
+    stepper.setAcceleration(650);
   }
   stepper.run();
 }
@@ -33,7 +32,7 @@ void pickSituation(int s) {
   if (s == 1) {
     currX = random(0 , limit);
     currY = random(currX, limit);
-    currZ = random(currY, limit);
+    currZ = random(currX, currY);
   }
   if (currX > limit) {
     currX = limit;
