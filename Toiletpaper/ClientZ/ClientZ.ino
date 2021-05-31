@@ -23,6 +23,12 @@ WebSocketsClient webSocket;
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
 int x = 0, y = 0, z = 0, s = 30, m = 1;
+int minLimitX = 0;
+int minLimitY = 0;
+int minLimitZ = 0;
+int maxLimitX = 300;
+int maxLimitY = 300;
+int maxLimitZ = 300;
 long currX = 0, currY = 0, currZ = 0;
 long currentMillis;
 long prevMillis;
@@ -113,31 +119,42 @@ void decode_text(String s) {
     if (c.substring(0, 1) == "x") {
       char* buf = (char *)c.c_str();
       int n = sscanf(buf, "x%dy%dz%d", &x, &y, &z);
+      if (x > 0) {
+        currX += moveVal;
+      }
+      if (x < 0) {
+        currX -= moveVal;
+      }
+      if (y > 0) {
+        currY += moveVal;
+      }
+      if (y < 0) {
+        currY -= moveVal;
+      }
       if (z > 0) {
         currZ += moveVal;
       }
       if (z < 0) {
         currZ -= moveVal;
       }
-    }
-    if (currX > limit) {
-      currX = limit;
-    }
-    if (currX < 0) {
-      currX = 0;
-    }
-    if (currY > limit) {
-      currY = limit;
-    }
-    if (currY < 0) {
-      currY = 0;
-    }
-    if (currZ > limit) {
-      currZ = limit;
-    }
-    if (currZ < 0) {
-      currZ = 0;
-    }
+      if (currX > maxLimitX) {
+        currX = maxLimitX;
+      }
+      if (currX < minLimitX) {
+        currX = minLimitX;
+      }
+      if (currY > maxLimitY) {
+        currY = maxLimitY;
+      }
+      if (currY < minLimitY) {
+        currY = minLimitY;
+      }
+      if (currZ > maxLimitZ) {
+        currZ = maxLimitZ;
+      }
+      if (currZ < minLimitZ) {
+        currZ = minLimitZ;
+      }
   }
   if (m == 1) {
     if (c.substring(0, 1) == "a") {

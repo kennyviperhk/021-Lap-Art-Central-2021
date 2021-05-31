@@ -14,6 +14,13 @@ bool shouldReboot = false;
 
 AccelStepper stepper(AccelStepper::DRIVER, STEPPER1_STEP_PIN, STEPPER1_DIR_PIN);
 int x = 0, y = 0, z = 0, s = 30, m = 1;
+int a = 0, b = 0, c = 0;
+int minLimitX = 0;
+int minLimitY = 0;
+int minLimitZ = 0;
+int maxLimitX = 300;
+int maxLimitY = 300;
+int maxLimitZ = 300;
 bool isActive = false;
 long currX = 0, currY = 0, currZ = 0;
 long interval = 1500;
@@ -136,7 +143,7 @@ void setup() {
   server.addHandler(&events);
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
-    request->send(200, "text/html", "<html><head><script>;var connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino']);connection.onopen=function(){connection.send('Connect '+new Date())};connection.onerror=function(n){console.log('WebSocket Error ',n)};connection.onmessage=function(n){console.log('Server: ',n.data)};connection.onclose=function(n){console.log('Socket is closed. Reconnect will be attempted in 1 second.',n.reason);setTimeout(function(){connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino'])},1000)};function sendStepper(n,o,c){var e='#x'+n+'y'+o+'z'+c;console.log('sendStepper: '+e);connection.send(e)};function sendMode(n){var e='#m'+n;console.log('sendMode: '+e);connection.send(e)};</script></head><body> Toilet Paper 1: <br /><br /><button onclick=\"sendStepper(-1,0,0);\" /><<<</button>   <button onclick=\"sendStepper(1,0,0);\" />>>></button><br /><br /> Toilet Paper 2: <br /><br /><button onclick=\"sendStepper(0,-1,0);\" /><<<</button>   <button onclick=\"sendStepper(0,1,0);\" />>>></button><br /><br /> Toilet Paper 3: <br /><br /><button onclick=\"sendStepper(0,0,-1);\" /><<<</button>   <button onclick=\"sendStepper(0,0,1);\" />>>></button><br /><br /><br /><br /><button onclick=\"sendMode(0);\" /> Manual Mode </button>   <button onclick=\"sendMode(1);\" /> Auto Mode </button></body></html>");
+    request->send(200, "text/html", "<html><head><script>;var connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino']);connection.onopen=function(){connection.send('Connect '+new Date())};connection.onerror=function(n){console.log('WebSocket Error ',n)};connection.onmessage=function(n){console.log('Server: ',n.data)};connection.onclose=function(n){console.log('Socket is closed. Reconnect will be attempted in 1 second.',n.reason);setTimeout(function(){connection=new WebSocket('ws://'+location.hostname+'/ws',['arduino'])},1000)};var s=100;function updateSpeed(){s=parseInt(document.getElementById('speed').value)};function sendLimit(n,o,e){var c='#a'+n+'b'+o+'c'+e;console.log('sendLimit: '+c);connection.send(c)};function sendStepper(n,o,e){var c='#x'+n+'y'+o+'z'+e;console.log('sendStepper: '+c);connection.send(c)};function sendMode(n){var o='#m'+n;console.log('sendMode: '+o);connection.send(o)};</script></head><body> Toilet Paper 1: <br /><br /><button onclick=\"sendStepper(-1,0,0);\" /><<<</button>   <button onclick=\"sendStepper(1,0,0);\" />>>></button><br /><br /><button onclick=\"sendLimit(-1,0,0);\" /> Lower Range </button>   <button onclick=\"sendLimit(1,0,0);\" /> Higher Range </button><br /><br /> Toilet Paper 2: <br /><br /><button onclick=\"sendStepper(0,-1,0);\" /><<<</button>   <button onclick=\"sendStepper(0,1,0);\" />>>></button><br /><br /><button onclick=\"sendLimit(0,-1,0);\" /> Lower Range </button>   <button onclick=\"sendLimit(0,1,0);\" /> Higher Range </button><br /><br /> Toilet Paper 3: <br /><br /><button onclick=\"sendStepper(0,0,-1);\" /><<<</button>   <button onclick=\"sendStepper(0,0,1);\" />>>></button><br /><br /><button onclick=\"sendLimit(0,0,-1);\" /> Lower Range </button>   <button onclick=\"sendLimit(0,0,1);\" /> Higher Range </button><br /><br /><button onclick=\"sendMode(0);\" /> Manual Mode </button>   <button onclick=\"sendMode(1);\" /> Auto Mode </button></body></html>");
   });
 
 
@@ -218,20 +225,44 @@ void decode_text(String s) {
   ws.textAll(s);
   Serial.println(s);
   int colorCodeBegin = s.indexOf('#');
-  String c = s.substring(colorCodeBegin + 1, s.length());
+  String t = s.substring(colorCodeBegin + 1, s.length());
 
   // we get stepper data
-  if (c.substring(0, 1) == "s") {
-    char* buf = (char *)c.c_str();
-    int n = sscanf(buf, "s%d", &s);
+  if (t.substring(0, 1) == "a") {
+    char* buf = (char *)t.c_str();
+    int n = sscanf(buf, "a%db%dc%d", &a, &b, &c);
+    if (a > 0) {
+      maxLimitX += moveVal;
+      minLimitX += moveVal;
+    }
+    if (a < 0) {
+      maxLimitX -= moveVal;
+      minLimitX -= moveVal;
+    }
+    if (b > 0) {
+      maxLimitY += moveVal;
+      minLimitY += moveVal;
+    }
+    if (b < 0) {
+      maxLimitY -= moveVal;
+      minLimitY -= moveVal;
+    }
+    if (c > 0) {
+      maxLimitZ += moveVal;
+      minLimitZ += moveVal;
+    }
+    if (c < 0) {
+      maxLimitZ -= moveVal;
+      minLimitZ -= moveVal;
+    }
   }
-  if (c.substring(0, 1) == "m") {
-    char* buf = (char *)c.c_str();
+  if (t.substring(0, 1) == "m") {
+    char* buf = (char *)t.c_str();
     int n = sscanf(buf, "m%d", &m);
   }
   if (m == 0) {
-    if (c.substring(0, 1) == "x") {
-      char* buf = (char *)c.c_str();
+    if (t.substring(0, 1) == "x") {
+      char* buf = (char *)t.c_str();
       int n = sscanf(buf, "x%dy%dz%d", &x, &y, &z);
       if (x > 0) {
         currX += moveVal;
@@ -251,29 +282,29 @@ void decode_text(String s) {
       if (z < 0) {
         currZ -= moveVal;
       }
-      if (currX > limit) {
-        currX = limit;
+      if (currX > maxLimitX) {
+        currX = maxLimitX;
       }
-      if (currX < 0) {
-        currX = 0;
+      if (currX < minLimitX) {
+        currX = minLimitX;
       }
-      if (currY > limit) {
-        currY = limit;
+      if (currY > maxLimitY) {
+        currY = maxLimitY;
       }
-      if (currY < 0) {
-        currY = 0;
+      if (currY < minLimitY) {
+        currY = minLimitY;
       }
-      if (currZ > limit) {
-        currZ = limit;
+      if (currZ > maxLimitZ) {
+        currZ = maxLimitZ;
       }
-      if (currZ < 0) {
-        currZ = 0;
+      if (currZ < minLimitZ) {
+        currZ = minLimitZ;
       }
     }
   }
   if (m == 1) {
-    if (c.substring(0, 1) == "a") {
-      char* buf = (char *)c.c_str();
+    if (t.substring(0, 1) == "a") {
+      char* buf = (char *)t.c_str();
       int n = sscanf(buf, "a%db%dc%d", &currX, &currY, &currZ);
     }
   }

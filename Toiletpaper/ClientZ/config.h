@@ -20,7 +20,6 @@
 
 
 #define moveVal 100
-#define limit 300
 #define paperBuffer 100
 
 #endif // CONFIG_H

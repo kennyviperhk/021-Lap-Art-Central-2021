@@ -24,9 +24,9 @@
         s = parseInt(document.getElementById('speed').value);
     }
 
-    function sendSpeed() {
-      var command = '#' + 's' + s;
-      console.log('sendSpeed: ' + command);
+    function sendLimit(x,y,z) {
+      var command = '#' + 'a' + x + 'b' + y + 'c' + z;
+      console.log('sendLimit: ' + command);
       connection.send(command);
     }
 
@@ -54,12 +54,22 @@
   <button onclick=\"sendStepper(1,0,0);\" /> >>> </button>
   <br />
   <br />
+  <button onclick=\"sendLimit(-1,0,0);\" /> Lower Range </button>
+  &nbsp
+  <button onclick=\"sendLimit(1,0,0);\" /> Higher Range </button>
+  <br />
+  <br />
   Toilet Paper 2:
   <br />
   <br />
   <button onclick=\"sendStepper(0,-1,0);\" /> <<< </button>
   &nbsp
   <button onclick=\"sendStepper(0,1,0);\" /> >>> </button>
+  <br />
+  <br />
+  <button onclick=\"sendLimit(0,-1,0);\" /> Lower Range </button>
+  &nbsp
+  <button onclick=\"sendLimit(0,1,0);\" /> Higher Range </button>
   <br />
   <br />
   Toilet Paper 3:
@@ -70,7 +80,9 @@
   <button onclick=\"sendStepper(0,0,1);\" /> >>> </button>
   <br />
   <br />
-  Speed: <input id=\"speed\" type=\"range\" min=\"100\" max=\"3000\" step=\"100\" oninput=\"updateSpeed();\" onmouseup=\"sendSpeed();\" ontouchend=\"sendSpeed();\"/>
+  <button onclick=\"sendLimit(0,0,-1);\" /> Lower Range </button>
+  &nbsp
+  <button onclick=\"sendLimit(0,0,1);\" /> Higher Range </button>
   <br />
   <br />
   <button onclick=\"sendMode(0);\" /> Manual Mode </button>
